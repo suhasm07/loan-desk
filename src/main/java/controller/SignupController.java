@@ -12,12 +12,17 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import model.Model;
 import model.User;
+import service.Validator;
 
 public class SignupController {
 	@FXML
 	private TextField username;
 	@FXML
 	private TextField password;
+	@FXML
+	private TextField firstName;
+	@FXML
+	private TextField lastName;
 	@FXML
 	private Button createUser;
 	@FXML
@@ -38,24 +43,45 @@ public class SignupController {
 	@FXML
 	public void initialize() {
 		createUser.setOnAction(event -> {
-			if (!username.getText().isEmpty() && !password.getText().isEmpty()) {
-				User user;
-				try {
-					user = model.getUserDao().createUser(username.getText(), password.getText());
-					if (user != null) {
-						status.setText("Created " + user.getUsername());
-						status.setTextFill(Color.GREEN);
-					} else {
-						status.setText("Cannot create user");
-						status.setTextFill(Color.RED);
-					}
-				} catch (SQLException e) {
-					status.setText(e.getMessage());
+			// Username and names are trimmed and the password is left exactly as typed
+			String usernameText = username.getText().trim();
+			String passwordText = password.getText();
+			String firstNameText = firstName.getText().trim();
+			String lastNameText = lastName.getText().trim();
+
+			// Check each field and keep the first problem we find
+			String errorMessage = Validator.validateUsername(usernameText);
+			if (errorMessage == null) {
+				errorMessage = Validator.validatePassword(passwordText);
+			}
+			if (errorMessage == null) {
+				errorMessage = Validator.validateName(firstNameText, "First name");
+			}
+			if (errorMessage == null) {
+				errorMessage = Validator.validateName(lastNameText, "Last name");
+			}
+
+			if (errorMessage != null) {
+				status.setText(errorMessage);
+				status.setTextFill(Color.RED);
+				return;
+			}
+
+			try {
+				User user = model.getUserDao().createUser(usernameText, passwordText, firstNameText, lastNameText);
+				if (user != null) {
+					status.setText("Created " + user.getUsername());
+					status.setTextFill(Color.GREEN);
+					username.clear();
+					password.clear();
+					firstName.clear();
+					lastName.clear();
+				} else {
+					status.setText("That username is already taken");
 					status.setTextFill(Color.RED);
 				}
-				
-			} else {
-				status.setText("Empty username or password");
+			} catch (SQLException e) {
+				status.setText("Could not save the account: " + e.getMessage());
 				status.setTextFill(Color.RED);
 			}
 		});
@@ -67,7 +93,7 @@ public class SignupController {
 	}
 	
 	public void showStage(Pane root) {
-		Scene scene = new Scene(root, 500, 300);
+		Scene scene = new Scene(root, 500, 400);
 		stage.setScene(scene);
 		stage.setResizable(false);
 		stage.setTitle("Sign up");

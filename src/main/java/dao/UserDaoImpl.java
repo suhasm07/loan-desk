@@ -90,10 +90,4 @@ public class UserDaoImpl implements UserDao {
 			}
 		}
 	}
-
-
-	@Override
-	public User createUser(String username, String password) throws SQLException {
-		return createUser(username, password, "", "");
-	}
 }

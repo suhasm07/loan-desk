@@ -21,6 +21,18 @@
             <Insets bottom="10.0" />
          </VBox.margin>
       </PasswordField>
+      <Label prefWidth="250.0" text="First name" />
+      <TextField fx:id="firstName" maxWidth="250.0">
+         <VBox.margin>
+            <Insets bottom="5.0" />
+         </VBox.margin>
+      </TextField>
+      <Label prefWidth="250.0" text="Last name" />
+      <TextField fx:id="lastName" maxWidth="250.0">
+         <VBox.margin>
+            <Insets bottom="10.0" />
+         </VBox.margin>
+      </TextField>
       <HBox alignment="CENTER" prefHeight="40.0" prefWidth="200.0" spacing="20.0">
          <children>
             <Button fx:id="createUser" mnemonicParsing="false" text="Create user" />
