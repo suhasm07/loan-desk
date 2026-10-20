@@ -42,40 +42,28 @@ public class LoginController {
 	@FXML
 	public void initialize() {		
 		login.setOnAction(event -> {
-			if (!name.getText().isEmpty() && !password.getText().isEmpty()) {
-				User user;
-				try {
-					user = model.getUserDao().getUser(name.getText(), password.getText());
-					if (user != null) {
-						model.setCurrentUser(user);
-						try {
-							FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/HomeView.fxml"));
-							HomeController homeController = new HomeController(stage, model);
-							
-							loader.setController(homeController);
-							VBox root = loader.load();
-	
-							homeController.showStage(root);
-							stage.close();
-						}catch (IOException e) {
-							message.setText(e.getMessage());
-						}
-						
-					} else {
-						message.setText("Wrong username or password");
-						message.setTextFill(Color.RED);
-					}
-				} catch (SQLException e) {
-					message.setText(e.getMessage());
-					message.setTextFill(Color.RED);
-				}
-				
-			} else {
-				message.setText("Empty username or password");
-				message.setTextFill(Color.RED);
+			// Username is trimmed, the password is used exactly as typed
+			String usernameText = name.getText().trim();
+			String passwordText = password.getText();
+
+			if (usernameText.isEmpty() || passwordText.isEmpty()) {
+				showError("Please enter your username and password");
+				return;
 			}
-			name.clear();
-			password.clear();
+
+			try {
+				User user = model.getUserDao().getUser(usernameText, passwordText);
+				if (user == null) {
+					// Stay on the login screen, keep the username, clear the password
+					showError("Wrong username or password");
+					password.clear();
+					return;
+				}
+				model.setCurrentUser(user);
+				openHome();
+			} catch (SQLException e) {
+				showError("Could not check your login: " + e.getMessage());
+			}
 		});
 		
 		signup.setOnAction(event -> {
@@ -90,15 +78,42 @@ public class LoginController {
 				
 				signupController.showStage(root);
 				
-				message.setText("");
-				name.clear();
-				password.clear();
+				clearFields();
 				
 				stage.close();
 			} catch (IOException e) {
-				message.setText(e.getMessage());
+				showError("Could not open the signup window: " + e.getMessage());
 			}});
 	}
+
+	// Opens the home window after a successful login
+	private void openHome() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/HomeView.fxml"));
+			HomeController homeController = new HomeController(stage, model);
+
+			loader.setController(homeController);
+			VBox root = loader.load();
+
+			homeController.showStage(root);
+			clearFields();
+			stage.close();
+		} catch (IOException e) {
+			showError("Could not open the home window: " + e.getMessage());
+		}
+	}
+
+	private void showError(String text) {
+		message.setText(text);
+		message.setTextFill(Color.RED);
+	}
+
+	private void clearFields() {
+		message.setText("");
+		name.clear();
+		password.clear();
+	}
+
 	
 	public void showStage(Pane root) {
 		Scene scene = new Scene(root, 500, 300);
