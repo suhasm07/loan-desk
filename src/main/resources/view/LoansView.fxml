@@ -27,6 +27,7 @@
         </TableView>
         <HBox alignment="CENTER_LEFT" spacing="15.0">
             <children>
+                <Button fx:id="addButton" mnemonicParsing="false" text="Add loan" />
                 <Button fx:id="refreshButton" mnemonicParsing="false" text="Refresh" />
                 <Button fx:id="closeButton" mnemonicParsing="false" text="Close" />
                 <Label fx:id="status" />

@@ -1,5 +1,6 @@
 package controller;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -7,12 +8,14 @@ import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -44,6 +47,8 @@ public class LoansController {
     @FXML
     private TableColumn<Loan, String> noteColumn;
     @FXML
+    private Button addButton;
+    @FXML
     private Button refreshButton;
     @FXML
     private Button closeButton;
@@ -67,6 +72,10 @@ public class LoansController {
     public void initialize() {
         setupColumns();
         loanTable.setPlaceholder(new Label("You have no loan records yet."));
+
+        addButton.setOnAction(event -> {
+            openLoanForm();
+        });
 
         refreshButton.setOnAction(event -> {
             loadLoans();
@@ -122,6 +131,29 @@ public class LoansController {
         } catch (SQLException e) {
             // The old list stays on screen if loading fails
             status.setText("Could not load your loans: " + e.getMessage());
+            status.setTextFill(Color.RED);
+        }
+    }
+
+    // Opens the add loan form. It waits here until the form is closed.
+    private void openLoanForm() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoanFormView.fxml"));
+            LoanFormController formController = new LoanFormController(stage, model);
+
+            loader.setController(formController);
+            VBox root = loader.load();
+
+            formController.showStage(root);
+
+            // Reload the table if a loan was saved
+            if (formController.isSaved()) {
+                loadLoans();
+                status.setText("Loan added. " + status.getText());
+                status.setTextFill(Color.GREEN);
+            }
+        } catch (IOException e) {
+            status.setText("Could not open the add loan form: " + e.getMessage());
             status.setTextFill(Color.RED);
         }
     }

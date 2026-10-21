@@ -94,6 +94,25 @@ public class LoanDaoImpl implements LoanDao {
         return loans;
     }
 
+    // Checks if this user already has an unreturned loan with this item code. ignoreLoanId is the loan being edited (use 0 when creating a new loan),
+    // so a loan is never counted as a duplicate of itself.
+    @Override
+    public boolean hasOutstandingLoan(int userId, String itemCode, int ignoreLoanId) throws SQLException {
+        String sql = "SELECT loan_id FROM " + TABLE_NAME
+                + " WHERE user_id = ? AND item_code = ? AND return_date IS NULL AND loan_id <> ?";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql);) {
+            stmt.setInt(1, userId);
+            stmt.setString(2, itemCode);
+            stmt.setInt(3, ignoreLoanId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+
     // Turns one row of the result into a Loan object
     private Loan makeLoan(ResultSet rs) throws SQLException {
         int loanId = rs.getInt("loan_id");

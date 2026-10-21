@@ -13,4 +13,5 @@ public interface LoanDao {
     void setup() throws SQLException;
     Loan addLoan(Loan loan) throws SQLException;
     List<Loan> getLoansForUser(int userId) throws SQLException;
+    boolean hasOutstandingLoan(int userId, String itemCode, int ignoreLoanId) throws SQLException;
 }
