@@ -90,4 +90,20 @@ public class UserDaoImpl implements UserDao {
 			}
 		}
 	}
+
+	// Changes the first and last name of a user.
+	// The WHERE user_id = ? part means it can only change that user's own row.
+	@Override
+	public boolean updateName(int userId, String firstName, String lastName) throws SQLException {
+		String sql = "UPDATE " + TABLE_NAME + " SET first_name = ?, last_name = ? WHERE user_id = ?";
+		try (Connection connection = Database.getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(sql);) {
+			stmt.setString(1, firstName);
+			stmt.setString(2, lastName);
+			stmt.setInt(3, userId);
+
+			int rowsChanged = stmt.executeUpdate();
+			return rowsChanged == 1;
+		}
+	}
 }

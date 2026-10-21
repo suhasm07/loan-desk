@@ -1,14 +1,18 @@
 package controller;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import model.Model;
 import model.User;
+
+import java.io.IOException;
 
 public class HomeController {
 	private Model model;
@@ -50,7 +54,7 @@ public class HomeController {
 		});
 
 		profileButton.setOnAction(event -> {
-			status.setText("Profile editing is coming soon");
+			openProfile();
 		});
 
 		logoutButton.setOnAction(event -> {
@@ -67,6 +71,23 @@ public class HomeController {
 	private void showWelcomeMessage() {
 		User currentUser = model.getCurrentUser();
 		welcomeLabel.setText("Welcome, " + currentUser.getFullName());
+	}
+
+	// Opens the profile window. It waits here until the profile window is closed and then the welcome message is updated in case the name was changed.
+	private void openProfile() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileView.fxml"));
+			ProfileController profileController = new ProfileController(stage, model);
+
+			loader.setController(profileController);
+			VBox root = loader.load();
+
+			profileController.showStage(root);
+			showWelcomeMessage();
+			status.setText("");
+		} catch (IOException e) {
+			status.setText("Could not open the profile window: " + e.getMessage());
+		}
 	}
 
 	// Clears the session, closes this window and goes back to the login screen
