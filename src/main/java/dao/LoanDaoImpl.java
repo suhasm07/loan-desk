@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,7 +95,8 @@ public class LoanDaoImpl implements LoanDao {
         return loans;
     }
 
-    // Checks if this user already has an unreturned loan with this item code. ignoreLoanId is the loan being edited (use 0 when creating a new loan),
+    // Checks if this user already has an unreturned loan with this item code.
+    // ignoreLoanId is the loan being edited (use 0 when creating a new loan),
     // so a loan is never counted as a duplicate of itself.
     @Override
     public boolean hasOutstandingLoan(int userId, String itemCode, int ignoreLoanId) throws SQLException {
@@ -112,7 +114,8 @@ public class LoanDaoImpl implements LoanDao {
         }
     }
 
-    // Changes the editable details of a loan. The loan ID, owner and loan date are never changed here.
+    // Changes the editable details of a loan.
+    // The loan ID, owner and loan date are never changed here.
     // The WHERE part only matches the owner's own loan that has not been returned yet.
     @Override
     public boolean updateLoan(Loan loan) throws SQLException {
@@ -152,7 +155,8 @@ public class LoanDaoImpl implements LoanDao {
         }
     }
 
-    // Deletes a loan. The WHERE part includes the user ID, so a user can only delete their own loans. If the loan belongs to someone else, nothing is deleted.
+    // Deletes a loan. The WHERE part includes the user ID, so a user can only
+    // delete their own loans. If the loan belongs to someone else, nothing is deleted.
     @Override
     public boolean deleteLoan(int loanId, int userId) throws SQLException {
         String sql = "DELETE FROM " + TABLE_NAME + " WHERE loan_id = ? AND user_id = ?";
@@ -166,26 +170,32 @@ public class LoanDaoImpl implements LoanDao {
         }
     }
 
-    // Turns one row of the result into a Loan object
+    // Turns one row of the result into a Loan object.
+    // If the saved data cannot be read (for example a changed date), a clear error is thrown
+    // instead of an unexpected crash.
     private Loan makeLoan(ResultSet rs) throws SQLException {
         int loanId = rs.getInt("loan_id");
-        int userId = rs.getInt("user_id");
-        String itemCode = rs.getString("item_code");
-        String itemName = rs.getString("item_name");
-        String borrowerName = rs.getString("borrower_name");
-        Category category = Category.valueOf(rs.getString("category"));
-        LocalDate loanDate = LocalDate.parse(rs.getString("loan_date"));
-        LocalDate dueDate = LocalDate.parse(rs.getString("due_date"));
-        String note = rs.getString("note");
+        try {
+            int userId = rs.getInt("user_id");
+            String itemCode = rs.getString("item_code");
+            String itemName = rs.getString("item_name");
+            String borrowerName = rs.getString("borrower_name");
+            Category category = Category.valueOf(rs.getString("category"));
+            LocalDate loanDate = LocalDate.parse(rs.getString("loan_date"));
+            LocalDate dueDate = LocalDate.parse(rs.getString("due_date"));
+            String note = rs.getString("note");
 
-        // An empty return date comes back as null
-        LocalDate returnDate = null;
-        String returnDateText = rs.getString("return_date");
-        if (returnDateText != null) {
-            returnDate = LocalDate.parse(returnDateText);
+            // An empty return date comes back as null
+            LocalDate returnDate = null;
+            String returnDateText = rs.getString("return_date");
+            if (returnDateText != null) {
+                returnDate = LocalDate.parse(returnDateText);
+            }
+
+            return new Loan(loanId, userId, itemCode, itemName, borrowerName, category, loanDate, dueDate,
+                    returnDate, note);
+        } catch (IllegalArgumentException | DateTimeParseException e) {
+            throw new SQLException("Loan " + loanId + " has saved data that cannot be read");
         }
-
-        return new Loan(loanId, userId, itemCode, itemName, borrowerName, category, loanDate, dueDate,
-                returnDate, note);
     }
 }

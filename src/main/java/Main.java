@@ -2,12 +2,14 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import javafx.application.Application;
-import javafx.stage.Stage;
-import javafx.util.Callback;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import javafx.fxml.FXMLLoader;
+import javafx.stage.Stage;
 
 import model.Model;
 import controller.LoginController;
@@ -18,6 +20,16 @@ public class Main extends Application {
 	@Override
 	public void init() {
 		model = new Model();
+
+		// Safety net: if something unexpected goes wrong, the user sees a message instead of nothing happening
+		Thread.setDefaultUncaughtExceptionHandler((thread, error) -> {
+			error.printStackTrace();
+			Platform.runLater(() -> {
+				Alert alert = new Alert(Alert.AlertType.ERROR, "Something went wrong: " + error.getMessage());
+				alert.setHeaderText(null);
+				alert.show();
+			});
+		});
 	}
 
 	@Override
@@ -25,7 +37,7 @@ public class Main extends Application {
 		try {
 			model.setup();
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoginView.fxml"));
-			
+
 			// Customize controller instance
 			LoginController loginController = new LoginController(primaryStage, model);
 
@@ -35,11 +47,28 @@ public class Main extends Application {
 
 			loginController.showStage(root);
 		} catch (IOException | SQLException | RuntimeException e) {
-			Scene scene = new Scene(new Label(e.getMessage()), 200, 100);
-			primaryStage.setTitle("Error");
-			primaryStage.setScene(scene);
-			primaryStage.show();
+			// The database file is never deleted or replaced, the user is only told what went wrong
+			showStartError(primaryStage, e);
 		}
+	}
+
+	// Shows a small window explaining why the application could not start
+	private void showStartError(Stage primaryStage, Exception error) {
+		Label errorLabel = new Label("LoanDesk could not start.\n\n" + error.getMessage()
+				+ "\n\nYour saved data has not been changed.");
+		errorLabel.setWrapText(true);
+		errorLabel.setPadding(new Insets(15));
+
+		Scene scene = new Scene(errorLabel, 450, 200);
+		primaryStage.setTitle("Error");
+		primaryStage.setScene(scene);
+		primaryStage.show();
+	}
+
+	// Called when the application closes, so no user stays logged in
+	@Override
+	public void stop() {
+		model.setCurrentUser(null);
 	}
 
 	public static void main(String[] args) {
