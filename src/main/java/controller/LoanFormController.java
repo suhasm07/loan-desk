@@ -47,22 +47,49 @@ public class LoanFormController {
     private Stage parentStage;
     private Model model;
 
-    // The loan date is always today, and the user cannot change it
-    private LocalDate today = LocalDate.now();
+    // This is the loan being edited. It stays null when a new loan is being added.
+    private Loan loanToEdit;
+
+    // The loan date cannot be changed. It is today for a new loan,
+    // or the original loan date when editing.
+    private LocalDate loanDate;
 
     // The loans screen checks this after the form closes
     private boolean saved = false;
 
+    // Used for adding a new loan
     public LoanFormController(Stage parentStage, Model model) {
+        this(parentStage, model, null);
+    }
+
+    // Used for editing an existing loan
+    public LoanFormController(Stage parentStage, Model model, Loan loanToEdit) {
         this.stage = new Stage();
         this.parentStage = parentStage;
         this.model = model;
+        this.loanToEdit = loanToEdit;
+
+        if (loanToEdit == null) {
+            this.loanDate = LocalDate.now();
+        } else {
+            this.loanDate = loanToEdit.getLoanDate();
+        }
     }
 
     @FXML
     public void initialize() {
-        loanDateLabel.setText("Loan date (set automatically): " + today);
+        loanDateLabel.setText("Loan date (cannot be changed): " + loanDate);
         categoryBox.getItems().setAll(Category.values());
+
+        // When editing, start with the loan's current details in the boxes
+        if (loanToEdit != null) {
+            itemCode.setText(loanToEdit.getItemCode());
+            itemName.setText(loanToEdit.getItemName());
+            borrowerName.setText(loanToEdit.getBorrowerName());
+            categoryBox.setValue(loanToEdit.getCategory());
+            dueDatePicker.setValue(loanToEdit.getDueDate());
+            noteArea.setText(loanToEdit.getNote());
+        }
 
         saveButton.setOnAction(event -> {
             saveLoan();
@@ -79,29 +106,29 @@ public class LoanFormController {
 
     private void saveLoan() {
         // Read what the user typed. The text fields are trimmed, the note is kept as typed.
-        String itemCodeText = Validator.cleanItemCode(itemCode.getText());
-        String itemNameText = itemName.getText().trim();
-        String borrowerText = borrowerName.getText().trim();
-        Category category = categoryBox.getValue();
-        LocalDate dueDate = dueDatePicker.getValue();
-        String noteText = noteArea.getText();
+        String newCode = Validator.cleanItemCode(itemCode.getText());
+        String newName = itemName.getText().trim();
+        String newBorrower = borrowerName.getText().trim();
+        Category newCategory = categoryBox.getValue();
+        LocalDate newDueDate = dueDatePicker.getValue();
+        String newNote = noteArea.getText();
 
         // Check each field and keep the first problem we find
-        String errorMessage = Validator.validateItemCode(itemCodeText);
+        String errorMessage = Validator.validateItemCode(newCode);
         if (errorMessage == null) {
-            errorMessage = Validator.validateItemName(itemNameText);
+            errorMessage = Validator.validateItemName(newName);
         }
         if (errorMessage == null) {
-            errorMessage = Validator.validateBorrowerName(borrowerText);
+            errorMessage = Validator.validateBorrowerName(newBorrower);
         }
         if (errorMessage == null) {
-            errorMessage = Validator.validateCategory(category);
+            errorMessage = Validator.validateCategory(newCategory);
         }
         if (errorMessage == null) {
-            errorMessage = Validator.validateDueDate(dueDate, today);
+            errorMessage = Validator.validateDueDate(newDueDate, loanDate);
         }
         if (errorMessage == null) {
-            errorMessage = Validator.validateNote(noteText);
+            errorMessage = Validator.validateNote(newNote);
         }
 
         if (errorMessage != null) {
@@ -111,24 +138,55 @@ public class LoanFormController {
 
         User currentUser = model.getCurrentUser();
         try {
+            // When editing, the loan's own ID is ignored so it is not a duplicate of itself
+            int ignoreLoanId = 0;
+            if (loanToEdit != null) {
+                ignoreLoanId = loanToEdit.getLoanId();
+            }
+
             // The same user cannot lend the same item twice at the same time
-            boolean alreadyOut = model.getLoanDao().hasOutstandingLoan(currentUser.getUserId(), itemCodeText, 0);
+            boolean alreadyOut = model.getLoanDao().hasOutstandingLoan(currentUser.getUserId(), newCode, ignoreLoanId);
             if (alreadyOut) {
-                showError("You already have an unreturned loan for item code " + itemCodeText);
+                showError("You already have an unreturned loan for item code " + newCode);
                 return;
             }
 
-            // A new loan has no ID yet and no return date
-            Loan loan = new Loan(0, currentUser.getUserId(), itemCodeText, itemNameText, borrowerText,
-                    category, today, dueDate, null, noteText);
-            model.getLoanDao().addLoan(loan);
-
-            // Only reached when the database save worked
-            saved = true;
-            stage.close();
+            if (loanToEdit == null) {
+                addNewLoan(currentUser, newCode, newName, newBorrower, newCategory, newDueDate, newNote);
+            } else {
+                updateExistingLoan(currentUser, newCode, newName, newBorrower, newCategory, newDueDate, newNote);
+            }
         } catch (SQLException e) {
             showError("Could not save the loan: " + e.getMessage());
         }
+    }
+
+    // A new loan has no ID yet and no return date
+    private void addNewLoan(User currentUser, String newCode, String newName, String newBorrower,
+                            Category newCategory, LocalDate newDueDate, String newNote) throws SQLException {
+        Loan newLoan = new Loan(0, currentUser.getUserId(), newCode, newName, newBorrower,
+                newCategory, loanDate, newDueDate, null, newNote);
+        model.getLoanDao().addLoan(newLoan);
+
+        // Only reached when the database save worked
+        saved = true;
+        stage.close();
+    }
+
+    // The updated loan is a copy, so the loan in the table is not changed unless the save works
+    private void updateExistingLoan(User currentUser, String newCode, String newName, String newBorrower,
+                                    Category newCategory, LocalDate newDueDate, String newNote) throws SQLException {
+        Loan updatedLoan = new Loan(loanToEdit.getLoanId(), currentUser.getUserId(), newCode, newName,
+                newBorrower, newCategory, loanDate, newDueDate, null, newNote);
+        boolean worked = model.getLoanDao().updateLoan(updatedLoan);
+
+        if (!worked) {
+            showError("Could not update the loan. It may already have been returned.");
+            return;
+        }
+
+        saved = true;
+        stage.close();
     }
 
     private void showError(String text) {
@@ -141,7 +199,11 @@ public class LoanFormController {
         Scene scene = new Scene(root, 450, 600);
         stage.setScene(scene);
         stage.setResizable(false);
-        stage.setTitle("Add loan");
+        if (loanToEdit == null) {
+            stage.setTitle("Add loan");
+        } else {
+            stage.setTitle("Edit loan");
+        }
         stage.initOwner(parentStage);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.showAndWait();

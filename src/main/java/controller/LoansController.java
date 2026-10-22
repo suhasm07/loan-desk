@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -49,6 +52,10 @@ public class LoansController {
     @FXML
     private Button addButton;
     @FXML
+    private Button editButton;
+    @FXML
+    private Button returnButton;
+    @FXML
     private Button refreshButton;
     @FXML
     private Button closeButton;
@@ -74,7 +81,15 @@ public class LoansController {
         loanTable.setPlaceholder(new Label("You have no loan records yet."));
 
         addButton.setOnAction(event -> {
-            openLoanForm();
+            openLoanForm(null);
+        });
+
+        editButton.setOnAction(event -> {
+            editSelectedLoan();
+        });
+
+        returnButton.setOnAction(event -> {
+            returnSelectedLoan();
         });
 
         refreshButton.setOnAction(event -> {
@@ -126,36 +141,102 @@ public class LoansController {
         try {
             List<Loan> loans = model.getLoanDao().getLoansForUser(currentUser.getUserId());
             loanTable.setItems(FXCollections.observableArrayList(loans));
-            status.setText("Showing " + loans.size() + " loan(s)");
-            status.setTextFill(Color.BLACK);
+            showMessage("Showing " + loans.size() + " loan(s)", Color.BLACK);
         } catch (SQLException e) {
             // The old list stays on screen if loading fails
-            status.setText("Could not load your loans: " + e.getMessage());
-            status.setTextFill(Color.RED);
+            showMessage("Could not load your loans: " + e.getMessage(), Color.RED);
         }
     }
 
-    // Opens the add loan form. It waits here until the form is closed.
-    private void openLoanForm() {
+    // Gets the loan the user clicked on. If nothing is selected, a message explains what to do.
+    private Loan getSelectedLoan() {
+        Loan selectedLoan = loanTable.getSelectionModel().getSelectedItem();
+        if (selectedLoan == null) {
+            showMessage("Please select a loan in the table first", Color.RED);
+        }
+        return selectedLoan;
+    }
+
+    private void editSelectedLoan() {
+        Loan selectedLoan = getSelectedLoan();
+        if (selectedLoan == null) {
+            return;
+        }
+        if (selectedLoan.isReturned()) {
+            showMessage("This loan has been returned, so it cannot be edited", Color.RED);
+            return;
+        }
+        openLoanForm(selectedLoan);
+    }
+
+    private void returnSelectedLoan() {
+        Loan selectedLoan = getSelectedLoan();
+        if (selectedLoan == null) {
+            return;
+        }
+        if (selectedLoan.isReturned()) {
+            showMessage("This loan has already been returned", Color.RED);
+            return;
+        }
+
+        // Ask first, because a return cannot be undone
+        Alert question = new Alert(Alert.AlertType.CONFIRMATION,
+                "Mark " + selectedLoan.getItemCode() + " as returned today?", ButtonType.YES, ButtonType.NO);
+        question.setHeaderText(null);
+        question.initOwner(stage);
+        Optional<ButtonType> answer = question.showAndWait();
+        if (answer.isEmpty() || answer.get() != ButtonType.YES) {
+            return;
+        }
+
+        User currentUser = model.getCurrentUser();
+        try {
+            boolean worked = model.getLoanDao().markReturned(selectedLoan.getLoanId(), currentUser.getUserId(),
+                    LocalDate.now());
+            if (worked) {
+                loadLoans();
+                showMessage(selectedLoan.getItemCode() + " marked as returned. " + statusText(), Color.GREEN);
+            } else {
+                showMessage("Could not mark the loan as returned", Color.RED);
+            }
+        } catch (SQLException e) {
+            showMessage("Could not mark the loan as returned: " + e.getMessage(), Color.RED);
+        }
+    }
+
+    // Opens the loan form. Pass null to add a new loan, or a loan to edit it.
+    // It waits here until the form is closed.
+    private void openLoanForm(Loan loanToEdit) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoanFormView.fxml"));
-            LoanFormController formController = new LoanFormController(stage, model);
+            LoanFormController formController = new LoanFormController(stage, model, loanToEdit);
 
             loader.setController(formController);
             VBox root = loader.load();
 
             formController.showStage(root);
 
-            // Reload the table if a loan was saved
+            // Reload the table if the loan was saved
             if (formController.isSaved()) {
                 loadLoans();
-                status.setText("Loan added. " + status.getText());
-                status.setTextFill(Color.GREEN);
+                if (loanToEdit == null) {
+                    showMessage("Loan added. " + statusText(), Color.GREEN);
+                } else {
+                    showMessage("Loan updated. " + statusText(), Color.GREEN);
+                }
             }
         } catch (IOException e) {
-            status.setText("Could not open the add loan form: " + e.getMessage());
-            status.setTextFill(Color.RED);
+            showMessage("Could not open the loan form: " + e.getMessage(), Color.RED);
         }
+    }
+
+    private String statusText() {
+        return status.getText();
+    }
+
+    private void showMessage(String text, Color color) {
+        status.setText(text);
+        status.setTextFill(color);
     }
 
     // Shows the window on top of the home window and waits until it is closed

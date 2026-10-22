@@ -1,6 +1,7 @@
 package dao;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 
 import model.Loan;
@@ -14,4 +15,6 @@ public interface LoanDao {
     Loan addLoan(Loan loan) throws SQLException;
     List<Loan> getLoansForUser(int userId) throws SQLException;
     boolean hasOutstandingLoan(int userId, String itemCode, int ignoreLoanId) throws SQLException;
+    boolean updateLoan(Loan loan) throws SQLException;
+    boolean markReturned(int loanId, int userId, LocalDate returnDate) throws SQLException;
 }

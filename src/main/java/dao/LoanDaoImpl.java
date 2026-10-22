@@ -112,6 +112,45 @@ public class LoanDaoImpl implements LoanDao {
         }
     }
 
+    // Changes the editable details of a loan. The loan ID, owner and loan date are never changed here.
+    // The WHERE part only matches the owner's own loan that has not been returned yet.
+    @Override
+    public boolean updateLoan(Loan loan) throws SQLException {
+        String sql = "UPDATE " + TABLE_NAME
+                + " SET item_code = ?, item_name = ?, borrower_name = ?, category = ?, due_date = ?, note = ? "
+                + "WHERE loan_id = ? AND user_id = ? AND return_date IS NULL";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql);) {
+            stmt.setString(1, loan.getItemCode());
+            stmt.setString(2, loan.getItemName());
+            stmt.setString(3, loan.getBorrowerName());
+            stmt.setString(4, loan.getCategory().name());
+            stmt.setString(5, loan.getDueDate().toString());
+            stmt.setString(6, loan.getNote());
+            stmt.setInt(7, loan.getLoanId());
+            stmt.setInt(8, loan.getUserId());
+
+            int rowsChanged = stmt.executeUpdate();
+            return rowsChanged == 1;
+        }
+    }
+
+    // Records the return date. Only works for the owner's own loan that is still out,
+    // so a loan cannot be returned twice.
+    @Override
+    public boolean markReturned(int loanId, int userId, LocalDate returnDate) throws SQLException {
+        String sql = "UPDATE " + TABLE_NAME + " SET return_date = ? "
+                + "WHERE loan_id = ? AND user_id = ? AND return_date IS NULL";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql);) {
+            stmt.setString(1, returnDate.toString());
+            stmt.setInt(2, loanId);
+            stmt.setInt(3, userId);
+
+            int rowsChanged = stmt.executeUpdate();
+            return rowsChanged == 1;
+        }
+    }
 
     // Turns one row of the result into a Loan object
     private Loan makeLoan(ResultSet rs) throws SQLException {
