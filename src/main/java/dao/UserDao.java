@@ -16,4 +16,6 @@ public interface UserDao {
 	boolean usernameExists(String username) throws SQLException;
 	User createUser(String username, String password, String firstName, String lastName) throws SQLException;
 	boolean updateName(int userId, String firstName, String lastName) throws SQLException;
+	boolean passwordMatches(int userId, String password) throws SQLException;
+	boolean updatePassword(int userId, String newPassword) throws SQLException;
 }

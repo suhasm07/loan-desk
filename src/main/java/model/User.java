@@ -2,29 +2,27 @@ package model;
 
 public class User {
 	private int userId;
+	private String username;
 	private String firstName;
 	private String lastName;
-	private String username;
-	private String password;
 
 	public User() {
 	}
-	
-	public User(String username, String password) {
-		this.username = username;
-		this.password = password;
-	}
 
-	public User(int userId, String username, String firstname, String lastname) {
+	// Used when loading a full user from the database
+	public User(int userId, String username, String firstName, String lastName) {
 		this.userId = userId;
-		this.firstName = firstname;
-		this.lastName = lastname;
 		this.username = username;
+		this.firstName = firstName;
+		this.lastName = lastName;
 	}
 
-	// getters and setters
 	public int getUserId() {
 		return userId;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 
 	public String getFirstName() {
@@ -35,15 +33,7 @@ public class User {
 		return lastName;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	// returns full name for the welcome message and export header
+	// Full name for the welcome message and export header
 	public String getFullName() {
 		return firstName + " " + lastName;
 	}
@@ -52,19 +42,15 @@ public class User {
 		this.userId = userId;
 	}
 
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
 	}
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 }

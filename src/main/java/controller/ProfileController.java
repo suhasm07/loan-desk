@@ -1,13 +1,16 @@
 package controller;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -24,6 +27,8 @@ public class ProfileController {
     private TextField lastName;
     @FXML
     private Button saveButton;
+    @FXML
+    private Button changePasswordButton;
     @FXML
     private Button closeButton;
     @FXML
@@ -49,6 +54,10 @@ public class ProfileController {
 
         saveButton.setOnAction(event -> {
             saveProfile();
+        });
+
+        changePasswordButton.setOnAction(event -> {
+            openChangePassword();
         });
 
         closeButton.setOnAction(event -> {
@@ -94,9 +103,26 @@ public class ProfileController {
         }
     }
 
+    // Opens the change password window on top of this one
+    private void openChangePassword() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChangePasswordView.fxml"));
+            ChangePasswordController passwordController = new ChangePasswordController(stage, model);
+
+            loader.setController(passwordController);
+            VBox root = loader.load();
+
+            passwordController.showStage(root);
+            status.setText("");
+        } catch (IOException e) {
+            status.setText("Could not open the change password window: " + e.getMessage());
+            status.setTextFill(Color.RED);
+        }
+    }
+
     // Shows the window on top of the home window and waits until it is closed
     public void showStage(Pane root) {
-        Scene scene = new Scene(root, 400, 350);
+        Scene scene = new Scene(root, 450, 380);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.setTitle("Edit profile");

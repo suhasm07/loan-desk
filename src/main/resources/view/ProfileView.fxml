@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefHeight="350.0" prefWidth="400.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="380.0" prefWidth="450.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <Label prefWidth="250.0" text="Username (cannot be changed)" />
         <TextField fx:id="usernameField" editable="false" maxWidth="250.0">
@@ -27,9 +27,10 @@
                 <Insets bottom="10.0" />
             </VBox.margin>
         </TextField>
-        <HBox alignment="CENTER" prefHeight="40.0" prefWidth="200.0" spacing="20.0">
+        <HBox alignment="CENTER" prefHeight="40.0" spacing="15.0">
             <children>
                 <Button fx:id="saveButton" mnemonicParsing="false" text="Save" />
+                <Button fx:id="changePasswordButton" mnemonicParsing="false" text="Change password" />
                 <Button fx:id="closeButton" mnemonicParsing="false" text="Close" />
             </children>
         </HBox>
