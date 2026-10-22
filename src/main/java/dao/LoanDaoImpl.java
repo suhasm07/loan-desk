@@ -152,6 +152,20 @@ public class LoanDaoImpl implements LoanDao {
         }
     }
 
+    // Deletes a loan. The WHERE part includes the user ID, so a user can only delete their own loans. If the loan belongs to someone else, nothing is deleted.
+    @Override
+    public boolean deleteLoan(int loanId, int userId) throws SQLException {
+        String sql = "DELETE FROM " + TABLE_NAME + " WHERE loan_id = ? AND user_id = ?";
+        try (Connection connection = Database.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql);) {
+            stmt.setInt(1, loanId);
+            stmt.setInt(2, userId);
+
+            int rowsDeleted = stmt.executeUpdate();
+            return rowsDeleted == 1;
+        }
+    }
+
     // Turns one row of the result into a Loan object
     private Loan makeLoan(ResultSet rs) throws SQLException {
         int loanId = rs.getInt("loan_id");

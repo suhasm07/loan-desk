@@ -50,11 +50,15 @@ public class LoansController {
     @FXML
     private TableColumn<Loan, String> noteColumn;
     @FXML
+    private Label hintLabel;
+    @FXML
     private Button addButton;
     @FXML
     private Button editButton;
     @FXML
     private Button returnButton;
+    @FXML
+    private Button deleteButton;
     @FXML
     private Button refreshButton;
     @FXML
@@ -92,12 +96,21 @@ public class LoansController {
             returnSelectedLoan();
         });
 
+        deleteButton.setOnAction(event -> {
+            deleteSelectedLoan();
+        });
+
         refreshButton.setOnAction(event -> {
             loadLoans();
         });
 
         closeButton.setOnAction(event -> {
             stage.close();
+        });
+
+        // Every time the user clicks a different row, the buttons are updated
+        loanTable.getSelectionModel().selectedItemProperty().addListener((observable, oldLoan, newLoan) -> {
+            updateButtons(newLoan);
         });
 
         loadLoans();
@@ -133,6 +146,29 @@ public class LoansController {
         });
     }
 
+    // Turns the buttons on or off and shows a hint, depending on which loan is selected
+    private void updateButtons(Loan selectedLoan) {
+        if (selectedLoan == null) {
+            editButton.setDisable(true);
+            returnButton.setDisable(true);
+            deleteButton.setDisable(true);
+            hintLabel.setText("Select a loan in the table to edit it, mark it returned or delete it.");
+        } else if (selectedLoan.isReturned()) {
+            // A returned loan is locked, but it can still be deleted
+            editButton.setDisable(true);
+            returnButton.setDisable(true);
+            deleteButton.setDisable(false);
+            hintLabel.setText("This loan has been returned, so it cannot be edited or returned again. "
+                    + "It can still be deleted.");
+        } else {
+            editButton.setDisable(false);
+            returnButton.setDisable(false);
+            deleteButton.setDisable(false);
+            hintLabel.setText("Selected loan " + selectedLoan.getItemCode()
+                    + ": you can edit it, mark it returned or delete it.");
+        }
+    }
+
     // Loads the logged-in user's loans from the database and works out the statuses
     private void loadLoans() {
         today = LocalDate.now();
@@ -141,6 +177,8 @@ public class LoansController {
         try {
             List<Loan> loans = model.getLoanDao().getLoansForUser(currentUser.getUserId());
             loanTable.setItems(FXCollections.observableArrayList(loans));
+            loanTable.getSelectionModel().clearSelection();
+            updateButtons(null);
             showMessage("Showing " + loans.size() + " loan(s)", Color.BLACK);
         } catch (SQLException e) {
             // The old list stays on screen if loading fails
@@ -180,12 +218,8 @@ public class LoansController {
         }
 
         // Ask first, because a return cannot be undone
-        Alert question = new Alert(Alert.AlertType.CONFIRMATION,
-                "Mark " + selectedLoan.getItemCode() + " as returned today?", ButtonType.YES, ButtonType.NO);
-        question.setHeaderText(null);
-        question.initOwner(stage);
-        Optional<ButtonType> answer = question.showAndWait();
-        if (answer.isEmpty() || answer.get() != ButtonType.YES) {
+        boolean confirmed = askYesNo("Mark " + selectedLoan.getItemCode() + " as returned today?");
+        if (!confirmed) {
             return;
         }
 
@@ -195,13 +229,49 @@ public class LoansController {
                     LocalDate.now());
             if (worked) {
                 loadLoans();
-                showMessage(selectedLoan.getItemCode() + " marked as returned. " + statusText(), Color.GREEN);
+                showMessage(selectedLoan.getItemCode() + " marked as returned. " + status.getText(), Color.GREEN);
             } else {
                 showMessage("Could not mark the loan as returned", Color.RED);
             }
         } catch (SQLException e) {
             showMessage("Could not mark the loan as returned: " + e.getMessage(), Color.RED);
         }
+    }
+
+    private void deleteSelectedLoan() {
+        Loan selectedLoan = getSelectedLoan();
+        if (selectedLoan == null) {
+            return;
+        }
+
+        // Ask first, because a deleted loan cannot be brought back
+        boolean confirmed = askYesNo("Delete the loan for " + selectedLoan.getItemCode() + " ("
+                + selectedLoan.getItemName() + ")? This cannot be undone.");
+        if (!confirmed) {
+            return;
+        }
+
+        User currentUser = model.getCurrentUser();
+        try {
+            boolean worked = model.getLoanDao().deleteLoan(selectedLoan.getLoanId(), currentUser.getUserId());
+            if (worked) {
+                loadLoans();
+                showMessage("Loan deleted. " + status.getText(), Color.GREEN);
+            } else {
+                showMessage("Could not delete the loan", Color.RED);
+            }
+        } catch (SQLException e) {
+            showMessage("Could not delete the loan: " + e.getMessage(), Color.RED);
+        }
+    }
+
+    // Shows a Yes / No question and gives back true if the user clicked Yes
+    private boolean askYesNo(String question) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, question, ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText(null);
+        alert.initOwner(stage);
+        Optional<ButtonType> answer = alert.showAndWait();
+        return answer.isPresent() && answer.get() == ButtonType.YES;
     }
 
     // Opens the loan form. Pass null to add a new loan, or a loan to edit it.
@@ -220,18 +290,14 @@ public class LoansController {
             if (formController.isSaved()) {
                 loadLoans();
                 if (loanToEdit == null) {
-                    showMessage("Loan added. " + statusText(), Color.GREEN);
+                    showMessage("Loan added. " + status.getText(), Color.GREEN);
                 } else {
-                    showMessage("Loan updated. " + statusText(), Color.GREEN);
+                    showMessage("Loan updated. " + status.getText(), Color.GREEN);
                 }
             }
         } catch (IOException e) {
             showMessage("Could not open the loan form: " + e.getMessage(), Color.RED);
         }
-    }
-
-    private String statusText() {
-        return status.getText();
     }
 
     private void showMessage(String text, Color color) {
@@ -241,7 +307,7 @@ public class LoansController {
 
     // Shows the window on top of the home window and waits until it is closed
     public void showStage(Pane root) {
-        Scene scene = new Scene(root, 950, 500);
+        Scene scene = new Scene(root, 950, 520);
         stage.setScene(scene);
         stage.setTitle("My loans");
         stage.initOwner(parentStage);

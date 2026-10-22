@@ -17,4 +17,5 @@ public interface LoanDao {
     boolean hasOutstandingLoan(int userId, String itemCode, int ignoreLoanId) throws SQLException;
     boolean updateLoan(Loan loan) throws SQLException;
     boolean markReturned(int loanId, int userId, LocalDate returnDate) throws SQLException;
+    boolean deleteLoan(int loanId, int userId) throws SQLException;
 }
