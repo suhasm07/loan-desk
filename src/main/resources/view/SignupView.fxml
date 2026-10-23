@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -8,37 +7,23 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="400.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="400.0" prefWidth="400.0" spacing="6.0" stylesheets="@../css/loandesk.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <Label prefHeight="17.0" prefWidth="250.0" text="Username" />
-      <TextField fx:id="username" maxWidth="250.0">
-         <VBox.margin>
-            <Insets bottom="5.0" />
-         </VBox.margin></TextField>
+      <Label styleClass="heading-label" text="Create your account" />
+      <Label prefWidth="250.0" text="Username" />
+      <TextField fx:id="username" maxWidth="250.0" />
       <Label prefWidth="250.0" text="Password" />
-      <PasswordField fx:id="password" maxWidth="250.0">
-         <VBox.margin>
-            <Insets bottom="10.0" />
-         </VBox.margin>
-      </PasswordField>
+      <PasswordField fx:id="password" maxWidth="250.0" />
       <Label prefWidth="250.0" text="First name" />
-      <TextField fx:id="firstName" maxWidth="250.0">
-         <VBox.margin>
-            <Insets bottom="5.0" />
-         </VBox.margin>
-      </TextField>
+      <TextField fx:id="firstName" maxWidth="250.0" />
       <Label prefWidth="250.0" text="Last name" />
-      <TextField fx:id="lastName" maxWidth="250.0">
-         <VBox.margin>
-            <Insets bottom="10.0" />
-         </VBox.margin>
-      </TextField>
-      <HBox alignment="CENTER" prefHeight="40.0" prefWidth="200.0" spacing="20.0">
+      <TextField fx:id="lastName" maxWidth="250.0" />
+      <HBox alignment="CENTER" prefHeight="40.0" spacing="20.0">
          <children>
-            <Button fx:id="createUser" mnemonicParsing="false" text="Create user" />
-            <Button fx:id="close" mnemonicParsing="false" text="Close" />
+            <Button fx:id="createUser" defaultButton="true" mnemonicParsing="false" text="Create account" />
+            <Button fx:id="close" mnemonicParsing="false" styleClass="secondary" text="Back to login" />
          </children>
       </HBox>
-      <Label fx:id="status" />
+      <Label fx:id="status" maxWidth="360.0" wrapText="true" />
    </children>
 </VBox>

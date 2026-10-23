@@ -10,9 +10,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefHeight="600.0" prefWidth="450.0" spacing="8.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="600.0" prefWidth="450.0" spacing="8.0" stylesheets="@../css/loandesk.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label fx:id="loanDateLabel" prefWidth="300.0" text="Loan date" />
+        <Label fx:id="loanDateLabel" prefWidth="300.0" styleClass="hint-label" text="Loan date" />
         <Label prefWidth="300.0" text="Item code (letters, digits and hyphens, up to 20)" />
         <TextField fx:id="itemCode" maxWidth="300.0" />
         <Label prefWidth="300.0" text="Item name" />
@@ -27,13 +27,13 @@
         <TextArea fx:id="noteArea" maxWidth="300.0" prefHeight="90.0" wrapText="true" />
         <HBox alignment="CENTER" spacing="20.0">
             <children>
-                <Button fx:id="saveButton" mnemonicParsing="false" text="Save loan" />
-                <Button fx:id="cancelButton" mnemonicParsing="false" text="Cancel" />
+                <Button fx:id="saveButton" defaultButton="true" mnemonicParsing="false" text="Save loan" />
+                <Button fx:id="cancelButton" mnemonicParsing="false" styleClass="secondary" text="Cancel" />
             </children>
             <VBox.margin>
                 <Insets top="10.0" />
             </VBox.margin>
         </HBox>
-        <Label fx:id="status" />
+        <Label fx:id="status" maxWidth="400.0" wrapText="true" />
     </children>
 </VBox>

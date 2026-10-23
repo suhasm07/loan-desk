@@ -8,9 +8,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="520.0" prefWidth="950.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox prefHeight="520.0" prefWidth="950.0" spacing="10.0" stylesheets="@../css/loandesk.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label text="My loans" />
+        <Label styleClass="heading-label" text="My loans" />
         <TableView fx:id="loanTable" prefHeight="400.0" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID" />
@@ -25,15 +25,15 @@
                 <TableColumn fx:id="noteColumn" prefWidth="130.0" text="Note" />
             </columns>
         </TableView>
-        <Label fx:id="hintLabel" />
-        <HBox alignment="CENTER_LEFT" spacing="15.0">
+        <Label fx:id="hintLabel" styleClass="hint-label" />
+        <HBox alignment="CENTER_LEFT" spacing="12.0">
             <children>
                 <Button fx:id="addButton" mnemonicParsing="false" text="Add loan" />
                 <Button fx:id="editButton" mnemonicParsing="false" text="Edit loan" />
                 <Button fx:id="returnButton" mnemonicParsing="false" text="Mark returned" />
-                <Button fx:id="deleteButton" mnemonicParsing="false" text="Delete loan" />
-                <Button fx:id="refreshButton" mnemonicParsing="false" text="Refresh" />
-                <Button fx:id="closeButton" mnemonicParsing="false" text="Close" />
+                <Button fx:id="deleteButton" mnemonicParsing="false" styleClass="danger" text="Delete loan" />
+                <Button fx:id="refreshButton" mnemonicParsing="false" styleClass="secondary" text="Refresh" />
+                <Button fx:id="closeButton" mnemonicParsing="false" styleClass="secondary" text="Close" />
                 <Label fx:id="status" />
             </children>
         </HBox>

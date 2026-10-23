@@ -1,39 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefHeight="380.0" prefWidth="450.0" spacing="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" prefHeight="380.0" prefWidth="450.0" spacing="8.0" stylesheets="@../css/loandesk.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
     <children>
+        <Label styleClass="heading-label" text="Your profile" />
         <Label prefWidth="250.0" text="Username (cannot be changed)" />
-        <TextField fx:id="usernameField" editable="false" maxWidth="250.0">
-            <VBox.margin>
-                <Insets bottom="5.0" />
-            </VBox.margin>
-        </TextField>
+        <TextField fx:id="usernameField" editable="false" maxWidth="250.0" />
         <Label prefWidth="250.0" text="First name" />
-        <TextField fx:id="firstName" maxWidth="250.0">
-            <VBox.margin>
-                <Insets bottom="5.0" />
-            </VBox.margin>
-        </TextField>
+        <TextField fx:id="firstName" maxWidth="250.0" />
         <Label prefWidth="250.0" text="Last name" />
-        <TextField fx:id="lastName" maxWidth="250.0">
-            <VBox.margin>
-                <Insets bottom="10.0" />
-            </VBox.margin>
-        </TextField>
+        <TextField fx:id="lastName" maxWidth="250.0" />
         <HBox alignment="CENTER" prefHeight="40.0" spacing="15.0">
             <children>
                 <Button fx:id="saveButton" mnemonicParsing="false" text="Save" />
                 <Button fx:id="changePasswordButton" mnemonicParsing="false" text="Change password" />
-                <Button fx:id="closeButton" mnemonicParsing="false" text="Close" />
+                <Button fx:id="closeButton" mnemonicParsing="false" styleClass="secondary" text="Close" />
             </children>
         </HBox>
-        <Label fx:id="status" />
+        <Label fx:id="status" maxWidth="400.0" wrapText="true" />
     </children>
 </VBox>

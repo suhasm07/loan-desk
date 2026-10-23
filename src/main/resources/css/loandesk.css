@@ -1,0 +1,83 @@
+/* LoanDesk stylesheet, used by every screen */
+
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f4f6f8;
+}
+
+/* Headings and small hints */
+.title-label {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f3a5f;
+}
+
+.heading-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f3a5f;
+}
+
+.hint-label {
+    -fx-text-fill: #5b6b7b;
+}
+
+/* Buttons: blue by default, grey for secondary actions, red for delete */
+.button {
+    -fx-background-color: #2f6fba;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-padding: 6 14 6 14;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #25598f;
+}
+
+.button.secondary {
+    -fx-background-color: #e3e8ee;
+    -fx-text-fill: #1f3a5f;
+}
+
+.button.secondary:hover {
+    -fx-background-color: #d3dae2;
+}
+
+.button.danger {
+    -fx-background-color: #c0392b;
+}
+
+.button.danger:hover {
+    -fx-background-color: #a33024;
+}
+
+/* A button that cannot be used right now looks greyed out */
+.button:disabled {
+    -fx-background-color: #c5ccd3;
+    -fx-text-fill: #f4f6f8;
+    -fx-opacity: 1;
+    -fx-cursor: default;
+}
+
+/* Input boxes */
+.text-field, .password-field, .text-area {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-color: #c5ccd3;
+    -fx-background-color: white;
+}
+
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: #2f6fba;
+}
+
+/* The loans table */
+.table-view {
+    -fx-border-color: #c5ccd3;
+}
+
+.table-view .column-header .label {
+    -fx-font-weight: bold;
+}
