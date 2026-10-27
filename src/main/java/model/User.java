@@ -1,5 +1,6 @@
 package model;
 
+// A LoanDesk user. The password is not kept here, only a hash is saved in the database.
 public class User {
 	private int userId;
 	private String username;

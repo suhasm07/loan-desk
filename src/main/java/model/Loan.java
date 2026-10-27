@@ -2,6 +2,9 @@ package model;
 
 import java.time.LocalDate;
 
+
+// One loan record. The status is never stored. It is worked out from the dates.
+
 public class Loan {
     private int loanId;
     private int userId;

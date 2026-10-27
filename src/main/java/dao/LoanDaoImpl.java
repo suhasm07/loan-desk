@@ -14,7 +14,7 @@ import model.Category;
 import model.Loan;
 
 public class LoanDaoImpl implements LoanDao {
-    private final String TABLE_NAME = "loans";
+    private static final String TABLE_NAME = "loans";
 
     public LoanDaoImpl() {
     }

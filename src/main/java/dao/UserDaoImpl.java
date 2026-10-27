@@ -10,7 +10,7 @@ import model.User;
 import service.PasswordHasher;
 
 public class UserDaoImpl implements UserDao {
-	private final String TABLE_NAME = "users";
+	private static final String TABLE_NAME = "users";
 
 	public UserDaoImpl() {
 	}

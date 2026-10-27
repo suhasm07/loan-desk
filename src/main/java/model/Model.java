@@ -7,6 +7,8 @@ import dao.LoanDaoImpl;
 import dao.UserDao;
 import dao.UserDaoImpl;
 
+// The model of the application. It holds the DAOs and the user who is logged in, and it is shared by all the controllers.
+
 public class Model {
 	private UserDao userDao;
 	private User currentUser;
